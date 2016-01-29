@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven'
 
 android {
     compileSdkVersion 23
@@ -18,6 +19,32 @@ android {
     }
 }
 
-dependencies {
-    compile 'com.android.support:appcompat-v7:23.1.1'
+
+task androidJavadocs(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    classifier = 'javadoc'
+    from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives androidSourcesJar
+    archives androidJavadocsJar
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        pom.groupId = 'eu.inloop'
+        pom.artifactId = 'easylog'
+        pom.version = VERSION_NAME
+        repository(url: "file://${System.env.HOME}/.m2/repository")
+    }
 }
